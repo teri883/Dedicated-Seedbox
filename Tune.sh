@@ -1,56 +1,50 @@
-#!/bin/sh
+#!/bin/bash
 
 tput sgr0; clear
 
+## Load text color settings
+wget -qO- https://raw.githubusercontent.com/jerry048/Seedbox-Components/main/Miscellaneous/tput.sh -O /tmp/tput.sh
+source /tmp/tput.sh
+rm -f /tmp/tput.sh
+
 ## Check Root Privilege
 if [ "$(id -u)" -ne 0 ]; then 
-    echo "This script needs root permission to run"
+    warn_1; echo  "This script needs root permission to run"; normal_4
     exit 1 
 fi
 
-## Load text color settings from URL
-wget -qO /tmp/tput.sh https://raw.githubusercontent.com/jerry048/Seedbox-Components/main/Miscellaneous/tput.sh
-source /tmp/tput.sh
-rm -f /tmp/tput.sh  # Remove the temporary file after sourcing
-
 ## Check Linux Distro
 distro_codename="$(source /etc/os-release && printf "%s" "${VERSION_CODENAME}")"
-if [ "$distro_codename" != "buster" ] && [ "$distro_codename" != "bullseye" ] && [ "$distro_codename" != "bookworm" ]; then
-    echo "Only Debian 10/11/12 is supported"
+if [[ $distro_codename != buster ]] && [[ $distro_codename != bullseye ]] && [[ $distro_codename != bookworm ]]; then
+    warn_1; echo "Only Debian 10/11/12 is supported"; normal_4
     exit 1
-
 fi
 
 while true; do
-    source <(wget -qO- https://raw.githubusercontent.com/jerry048/Seedbox-Components/main/tweaking.sh)
+    wget -qO- https://raw.githubusercontent.com/jerry048/Seedbox-Components/main/tweaking.sh -O /tmp/tweaking.sh
+    source /tmp/tweaking.sh
+    rm -f /tmp/tweaking.sh
     normal_3; options=("Deluge Tuning" "Tweaked BBR Install" "System Tuning" "Configure Boot Script")
     select opt in "${options[@]}"
     do
         case $opt in
             "Deluge Tuning")
-                need_input; read -p "Enter the username of your Deluge: " username
-                read -p "Cache Size (unit: MiB): " cache
-                Cache_de=$((cache * 64))
-                Deluge_libtorrent
-                break
+                need_input; read -p "Enter username of your Deluge: " username
+                read -p "Cache Size (unit:MiB): " cache;
+                Cache_de=$(expr $cache \* 64)
+                Deluge_libtorrent; break
                 ;;
             "Tweaked BBR Install")
                 apt-get -qqy install sudo
                 Tweaked_BBR
-                normal_1; echo "Reboot for Tweaked BBR to take effect"
-                break
+                normal_1; echo "Reboot for Tweaked BBR to take effect"; break
                 ;;
             "System Tuning")
-                CPU_Tweaking
-                NIC_Tweaking
-                Network_Other_Tweaking
-                Scheduler_Tweaking
-                kernel_Tweaking
-                break
+                CPU_Tweaking; NIC_Tweaking; Network_Other_Tweaking; Scheduler_Tweaking; kernel_Tweaking; break
                 ;;
             "Configure Boot Script")
-                normal_1; echo "Start Configuring Boot Script"
-                wget https://raw.githubusercontent.com/jerry048/Seedbox-Components/main/Miscellaneous/.boot-script.sh && chmod +x .boot-script.sh
+                normal_1; echo "Start Configuing Boot Script"
+                wget https://raw.githubusercontent.com/jerry048/Seedbox-Components/main/Miscellaneous/.boot-script.sh -O ~/.boot-script.sh && chmod +x ~/.boot-script.sh
                 cat << EOF > /etc/systemd/system/boot-script.service
 [Unit]
 Description=boot-script
@@ -64,8 +58,7 @@ RemainAfterExit=true
 [Install]
 WantedBy=multi-user.target
 EOF
-                systemctl enable boot-script.service
-                break
+                systemctl enable boot-script.service; break
                 ;;
             *) warn_1; echo "Please choose a valid action";;
         esac
