@@ -2,19 +2,21 @@
 
 tput sgr0; clear
 
-## Load text color settings
-source <(wget -qO- https://raw.githubusercontent.com/jerry048/Seedbox-Components/main/Miscellaneous/tput.sh)
-
 ## Check Root Privilege
-if [ $(id -u) -ne 0 ]; then 
-    warn_1; echo  "This script needs root permission to run"; normal_4
+if [ "$(id -u)" -ne 0 ]; then 
+    echo "This script needs root permission to run"
     exit 1 
 fi
 
+## Load text color settings from URL
+wget -qO /tmp/tput.sh https://raw.githubusercontent.com/jerry048/Seedbox-Components/main/Miscellaneous/tput.sh
+source /tmp/tput.sh
+rm -f /tmp/tput.sh  # Remove the temporary file after sourcing
+
 ## Check Linux Distro
 distro_codename="$(source /etc/os-release && printf "%s" "${VERSION_CODENAME}")"
-if [[ $distro_codename != buster ]] && [[ $distro_codename != bullseye ]] && [[ $distro_codename != bookworm ]]; then
-    warn_1; echo "Only Debian 10/11/12 is supported"; normal_4
+if [ "$distro_codename" != "buster" ] && [ "$distro_codename" != "bullseye" ] && [ "$distro_codename" != "bookworm" ]; then
+    echo "Only Debian 10/11/12 is supported"
     exit 1
 
 fi
