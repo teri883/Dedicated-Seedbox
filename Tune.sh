@@ -12,10 +12,12 @@ if [ $(id -u) -ne 0 ]; then
 fi
 
 ## Check Linux Distro
-ubuntu_version=$(lsb_release -r -s)
-if [[ $ubuntu_version != "18.04" ]]; then
-    warn_1; echo "Only Ubuntu 18.04 is supported"; normal_4
+distro_codename="$(source /etc/os-release && printf "%s" "${VERSION_CODENAME}")"
+if [[ $distro_codename != buster ]] && [[ $distro_codename != bullseye ]] && [[ $distro_codename != bookworm ]]; then
+    warn_1; echo "Only Debian 10/11/12 is supported"; normal_4
     exit 1
+fi
+
 fi
 
 while true; do
